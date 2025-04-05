@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -49,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.el_aouthmanie.nticapp.R
 
 @Composable
-fun LoginScreen(gestureDetection: MutableState<Boolean>, onLogin: (String, String) -> Unit) {
+fun LoinScreen(gestureDetection: MutableState<Boolean>, onLogin: (String, String) -> Unit) {
     gestureDetection.value = false
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -80,7 +81,6 @@ fun LoginScreen(gestureDetection: MutableState<Boolean>, onLogin: (String, Strin
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(250.dp)
-                    .clip(RoundedCornerShape(bottomStart = 60.dp, bottomEnd = 60.dp))
             )
 
             Spacer(modifier = Modifier.height(20.dp))

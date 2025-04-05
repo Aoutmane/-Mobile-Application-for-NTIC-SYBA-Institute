@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.el_aouthmanie.nticapp.controllers.UserAuthRole
 import com.el_aouthmanie.nticapp.controllers.toUserAuthRole
+import com.el_aouthmanie.nticapp.modules.intities.Notification
 import com.el_aouthmanie.nticapp.modules.intities.Seance
 import com.el_aouthmanie.nticapp.modules.intities.User
 import com.el_aouthmanie.nticapp.ui.screens.scheduleScreen.dayIndex
@@ -34,7 +35,7 @@ import java.util.Locale
 val NORMALE_END_TIME = LocalTime.parse("18:30")
 
 //todo handle firebase and online data
-class OnlineDataBase {
+object OnlineDataBase {
     private val client by lazy {
         OkHttpClient()
     }
@@ -185,6 +186,12 @@ class OnlineDataBase {
         editor.apply()
     }
 
+    fun getGroup(context: Context): String{
+        val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        return sharedPreferences.getString(KEY_GROUP, "N/A") ?: "N/A" // Default to false if not set
+    }
+
     // Check login state from SharedPreferences
     fun isUserLoggedIn(context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -203,7 +210,12 @@ class OnlineDataBase {
         )
     }
 
-    suspend fun addAnouncmentToHistory(){
-
+    suspend fun addAnnouncmentToHistory(
+        realm: Realm,
+        notification: Notification
+    ){
+        realm.write {
+            copyToRealm(notification)
+        }
     }
 }

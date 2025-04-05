@@ -8,54 +8,72 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import androidx.work.impl.utils.forName
+import com.el_aouthmanie.nticapp.modules.OnlineDataBase
 
 import com.el_aouthmanie.nticapp.modules.realmHandler.RealmManager
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 
-
 class MainActivity : ComponentActivity() {
 
+    private lateinit var dataBase: OnlineDataBase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        initializeFirebaseMessaging()
+        requestNotificationPermission()
+        RealmManager.initialize()
+        createNotificationChannel()
+        dataBase = OnlineDataBase
+
+        setContent {
+            val mainNavController = rememberNavController()
+            val context = LocalContext.current
+
+            AppEntry(
+                context,
+                mainNavController,
+                dataBase
+            )
+        }
+    }
+
+    /**
+     * Initializes Firebase Cloud Messaging and logs the token.
+     */
+    private fun initializeFirebaseMessaging() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "Token: $token")
+                task.result?.let { token ->
+                    Log.d("FCM", "Token retrieved successfully: $token")
+                } ?: Log.w("FCM", "FCM Token is null")
             } else {
                 Log.w("FCM", "Fetching FCM registration token failed", task.exception)
             }
         }
-//        createNotificationChannel()
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
-//        }
-        RealmManager.initialize(this)
+    }
 
-        @Suppress("all")
-//        val periodicWorkRequest = PeriodicWorkRequest.Builder(
-//            MyWorker::class.java,
-//            10, TimeUnit.SECONDS  // This specifies the repeat interval (1 hour)
-//        ).build()
-
-//        // Get the WorkManager instance and enqueue the periodic work
-//        WorkManager.getInstance(applicationContext).enqueue(periodicWorkRequest)
-
-        setContent {
-            val context = LocalContext.current
-//            val navContrller = rememberNavController()
-            MainScreen(
-                )
+    /**
+     * Requests notification permissions for Android 13 (API 33) and above.
+     */
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
         }
     }
 
-
+    /**
+     * Creates a notification channel for API 26+.
+     */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -71,16 +89,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
 }
+
 @Preview(device = Devices.TABLET)
 @Composable
 fun helloWorld(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-
-//    val db = DatabaseHelper(context)
-
-
-//            val navContrller = rememberNavController()
-    MainScreen(
-    )
+    val c = rememberNavController()
+    val d = OnlineDataBase
+    AppEntry(context = context, navController = c, dataBase = d)
 }

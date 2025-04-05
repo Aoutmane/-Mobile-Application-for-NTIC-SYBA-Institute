@@ -110,7 +110,7 @@
 //                                                }
 //
 //                                                th, td {
-//                                                    border: 1px solid #ddd;
+//                                                    border: 1px solid #com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.ddd;
 //                                                    padding: 10px;
 //                                                    font-size: 14px;
 //                                                }

@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.el_aouthmanie.nticapp"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.constraintlayout)
+    implementation (libs.accompanist.navigation.animation)
+    implementation (libs.androidx.material.icons.extended)
     // To use constraintlayout in compose
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.core.ktx)

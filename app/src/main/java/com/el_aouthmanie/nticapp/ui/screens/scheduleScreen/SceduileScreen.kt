@@ -44,7 +44,7 @@ val dayIndex = mapOf(
 
 @Composable
 fun ScheduleScreen() {
-    val onlineDataBase = OnlineDataBase()
+    val onlineDataBase = OnlineDataBase
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState { 6 }
     var updateTrigger by rememberSaveable { mutableStateOf(true) }
@@ -59,7 +59,7 @@ fun ScheduleScreen() {
         scope.launch {
             onlineDataBase.syncClasses(
                 "AM201",
-                "S2S27",
+                "S2S28",
                 realm,
                 scope,
                 onFailureResponse = {
