@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Announcement
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -106,15 +109,16 @@ fun NotificationCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color.LightGray.copy(alpha = 0.2f))
-                        .padding(8.dp),
+//                        .background(Color.LightGray.copy(alpha = 0.2f))
+
+                        .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = icon,
+                        imageVector = Icons.Outlined.Announcement,
                         contentDescription = null,
                         tint = Color.Black,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
 

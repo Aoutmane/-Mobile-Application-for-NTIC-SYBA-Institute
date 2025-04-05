@@ -20,7 +20,7 @@ fun NotificationsList(notifications: List<NotificationItem>) {
             .padding(top = 16.dp)
     ) {
         Text(
-            text = "Today",
+            text = "To Check :",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Gray,

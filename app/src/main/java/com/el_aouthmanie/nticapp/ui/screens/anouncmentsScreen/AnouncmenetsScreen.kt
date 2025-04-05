@@ -76,32 +76,51 @@ fun AnnouncementsScreen(navController: NavController) {
     val notifications = remember {
         listOf(
             Notification().apply {
-                title = "Meeting Reminder"
+                title = "Class Rescheduling Notice"
                 sender = "Admin"
-                body = "Team meeting at 10 AM"
+                body = "The Networking Fundamentals class has been rescheduled to 2 PM tomorrow. Please update your timetable accordingly."
                 createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
                 type = "INFO"
+                priority = "NORMAL"
+                isRead = false
+            },
+            Notification().apply {
+                title = "Exam Schedule Published"
+                sender = "Admin"
+                body = "The final exam schedule for the current semester is now available on the student portal. Make sure to check your subjects."
+                createdAt = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE)
+                type = "ANNOUNCEMENT"
                 priority = "HIGH"
                 isRead = false
             },
             Notification().apply {
-                title = "Project Deadline"
-                sender = "Manager"
-                body = "Submit the project by EOD"
-                createdAt = LocalDate.now().plusDays(2).format(DateTimeFormatter.ISO_DATE)
-                type = "WARNING"
+                title = "Workshop on JavaFX"
+                sender = "Admin"
+                body = "A practical workshop on JavaFX will be held this Friday in Lab 2. All Software Development students are encouraged to attend."
+                createdAt = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE)
+                type = "EVENT"
                 priority = "NORMAL"
-                isRead = true
+                isRead = false
             },
             Notification().apply {
-                title = "Conference Call"
-                sender = "Client"
-                body = "Join tLorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimatahe client call at 3 PM"
-                createdAt = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE)
-                type = "INFO"
+                title = "Library Book Return Reminder"
+                sender = "Admin"
+                body = "You have books due for return in the OFPPT library. Kindly return them before the end of this week to avoid penalties."
+                createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                type = "REMINDER"
                 priority = "LOW"
                 isRead = false
+            },
+            Notification().apply {
+                title = "New Courses Available"
+                sender = "Admin"
+                body = "New elective courses for the next semester have been added. Visit the admin office or the portal to register your choices."
+                createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                type = "INFO"
+                priority = "NORMAL"
+                isRead = true
             }
+
         )
     }
 
@@ -188,12 +207,12 @@ fun AnnouncementsScreen(navController: NavController) {
                             label = { Text("Info") }
                         )
                         FilterChip(
-                            selected = selectedType == "WARNING",
+                            selected = selectedType == "Scheduile Update",
                             onClick = { selectedType = if (selectedType == "WARNING") "" else "WARNING" },
                             label = { Text("Warning") }
                         )
                         FilterChip(
-                            selected = selectedType == "ERROR",
+                            selected = selectedType == "to do",
                             onClick = { selectedType = if (selectedType == "ERROR") "" else "ERROR" },
                             label = { Text("Error") }
                         )

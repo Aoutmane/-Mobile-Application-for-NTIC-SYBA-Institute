@@ -182,14 +182,67 @@ fun HomeScreen(
                     }
                 }
 
-
+                //region to dynamic
                 NotificationsList(notifications = List(10) {
-                    com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                        icon = R.drawable.profile,
-                        subtitle = "hello worlsd",
-                        title = "hello $it"
-                    )
+                    when (it) {
+                        0 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "The Networking Fundamentals class is rescheduled to 2 PM tomorrow.",
+                            title = "Class Rescheduling"
+                        )
+                        1 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Final exam schedule is now available on the student portal.",
+                            title = "Exam Schedule Published"
+                        )
+                        2 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "JavaFX Workshop this Friday in Lab 2. All students welcome!",
+                            title = "Upcoming Workshop"
+                        )
+                        3 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Return your library books before Friday to avoid penalties.",
+                            title = "Library Reminder"
+                        )
+                        4 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "New elective courses added. Register your choices soon.",
+                            title = "New Courses Available"
+                        )
+                        5 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "The institute will be closed next Monday due to maintenance.",
+                            title = "Closure Announcement"
+                        )
+                        6 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Don't forget to complete your internship report submission.",
+                            title = "Internship Reminder"
+                        )
+                        7 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Career orientation session next week. Sign up at reception.",
+                            title = "Orientation Session"
+                        )
+                        8 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Digital skills training available. Check your email for details.",
+                            title = "Skills Training"
+                        )
+                        9 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "Semester results will be published by the end of the month.",
+                            title = "Results Announcement"
+                        )
+                        else -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                            icon = R.drawable.profile,
+                            subtitle = "General notice",
+                            title = "Notification"
+                        )
+                    }
                 })
+                //endregion
 
             }
         }

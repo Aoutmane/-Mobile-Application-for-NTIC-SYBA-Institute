@@ -181,7 +181,7 @@ fun LaunchingScreen(
                     fadeIn() togetherWith fadeOut()
                 }
             ) { page ->
-                NextButton(){
+                NextButton(folded = true){
                     if (page < totalPages - 1) {
                         currentPage++
                     } else {
