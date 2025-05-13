@@ -40,6 +40,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         manager.notify(30, builder.build())
     }
 
+    fun subscribeToGroup(grp : String){
+
+    }
+
 }
 //class MyFirebaseMessagingService : FirebaseMessagingService() {
 //

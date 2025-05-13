@@ -84,3 +84,30 @@ fun parseResponse(jsonString: String) {
     }
 }
 
+curl -X POST -H "Authorization: key=BGRdj3HwmKFSWlHtoNpsJkWsm67c9myh2GP_VUp-08vh18FmKECH61N2ofqVZ-_7S7Dh4Zf6qn5ADgSWFehA94w" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "to": "/topics/all",
+           "notification": {
+             "title": "Hello World",
+             "body": "This is a broadcast to all users"
+           }
+         }' \
+     https://fcm.googleapis.com/fcm/send
+
+
+
+
+i have this stored procedure on a database and i need code in php as a web service for testing , as one file only please , so the php gets the user name and the password then it finds them if exists i need if he can login and is he a admin or not : "BEGIN
+    SELECT students.name AS name,
+           students.login AS login,
+           students.password_hash AS password,
+           3 AS is_admin
+    FROM students
+    UNION ALL
+    SELECT admins.name,
+           admins.login,
+           admins.password_hash,
+           1
+    FROM admins;
+END"

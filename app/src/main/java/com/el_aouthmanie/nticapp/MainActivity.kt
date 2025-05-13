@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import androidx.work.impl.utils.forName
 import com.el_aouthmanie.nticapp.modules.OnlineDataBase
@@ -26,8 +28,23 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var dataBase: OnlineDataBase
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        splashScreen.setKeepOnScreenCondition {
+            // Return true if the splash screen should stay, false otherwise
+            false
+        }
+        splashScreen.setOnExitAnimationListener { splashViewProvider ->
+            splashViewProvider.iconView.animate()
+                .setDuration(300L)
+                .alpha(0f)
+                .withEndAction {
+                    splashViewProvider.remove()
+                }.start()
+        }
 
         initializeFirebaseMessaging()
         requestNotificationPermission()
@@ -92,7 +109,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@Preview(device = Devices.TABLET)
+@Preview(device = "spec:width=1280dp,height=800dp,dpi=240")
 @Composable
 fun helloWorld(modifier: Modifier = Modifier) {
     val context = LocalContext.current

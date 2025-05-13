@@ -1,11 +1,12 @@
 package com.el_aouthmanie.nticapp.modules
 
+import android.adservices.topics.EncryptedTopic
 import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.el_aouthmanie.nticapp.controllers.UserAuthRole
-import com.el_aouthmanie.nticapp.controllers.toUserAuthRole
+import com.el_aouthmanie.nticapp.globals.UserAuthRole
+import com.el_aouthmanie.nticapp.globals.toUserAuthRole
 import com.el_aouthmanie.nticapp.modules.intities.Notification
 import com.el_aouthmanie.nticapp.modules.intities.Seance
 import com.el_aouthmanie.nticapp.modules.intities.User
@@ -29,6 +30,12 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.core.content.edit
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat
+import com.el_aouthmanie.nticapp.modules.intities.Admin
+import com.el_aouthmanie.nticapp.modules.intities.Guest
+import com.el_aouthmanie.nticapp.modules.intities.Trainee
+import okhttp3.HttpUrl
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -40,11 +47,14 @@ object OnlineDataBase {
         OkHttpClient()
     }
     private val API_URL = "http://eplanner-syba.somee.com/Service1.asmx/ListeSeancesGrp"
+    private val LOGIN_API_URL = "azzi-aoutmane.alwaysdata.net"
+
     private val REQUEST_BODY = "application/json; charset=utf-8"
 
     private val PREF_NAME = "loginInfo"
 
     private val KEY_IS_LOGGED_IN = "isLoged"
+
     private val KEY_NAME = "name"
     private val KEY_GROUP = "group"
     private val KEY_ROLE = "role"
@@ -178,12 +188,12 @@ object OnlineDataBase {
         group: String
     ) {
         val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)
-        editor.putString(KEY_ROLE, authRole.toString())
-        editor.putString(KEY_NAME, name)
-        editor.putString(KEY_GROUP, group)
-        editor.apply()
+        sharedPreferences.edit() {
+            putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)
+            putString(KEY_ROLE, authRole.toString())
+            putString(KEY_NAME, name)
+            putString(KEY_GROUP, group)
+        }
     }
 
     fun getGroup(context: Context): String{
@@ -199,16 +209,6 @@ object OnlineDataBase {
         return sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) // Default to false if not set
     }
 
-    fun getUserLoginState(context: Context): User {
-        val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
-        return User(
-            name = sharedPreferences.getString(KEY_NAME, "Guest") ?: "Guest",
-            group = sharedPreferences.getString(KEY_GROUP, " - ") ?: " - ",
-            authRole = sharedPreferences.getString(KEY_ROLE, "Guest")?.toUserAuthRole()
-                ?: UserAuthRole.Guest
-        )
-    }
 
     suspend fun addAnnouncmentToHistory(
         realm: Realm,
@@ -216,6 +216,43 @@ object OnlineDataBase {
     ){
         realm.write {
             copyToRealm(notification)
+        }
+    }
+
+
+
+    //////////////////////////////////////////////////////////////////////////// [- API FUNCTIONS -] /////////////////////////////
+
+
+
+
+    fun loginUser(username: String, password: String): User? {
+        val client = OkHttpClient()
+
+        val url = HttpUrl.Builder()
+            .scheme("http")
+            .host(LOGIN_API_URL)
+            .addPathSegment("login_service.php")
+            .addQueryParameter("username", username)
+            .addQueryParameter("password", password)
+            .build()
+
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return null
+
+            val body = response.body?.string() ?: return null
+
+            val json = JSONObject(body)
+            val name = json.optString("name", "")
+            val lastName = json.optString("lastName", "")
+            val group = json.optString("group", "")
+            val isAdmin = json.optBoolean("admin", false)
+
+            if (name.isBlank() || lastName.isBlank() || group.isBlank()) return null
+
+            return if (isAdmin) Admin(name, lastName) else Trainee(name, lastName, group)
         }
     }
 }

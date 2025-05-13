@@ -37,10 +37,15 @@ import com.el_aouthmanie.nticapp.ui.theme.titlePrimary
 fun HeaderSection(
     welcomingMessage : String = "HELLO!",
     name : String = "Aoutmane",
-    quote : String = "Mr. Aoutmane is a legend"
-
+    quote : String = "Mr. Aoutmane is a legend",
+    uri : String? = null,
+    onProfileClicked : () -> Unit
 ) {
-    val img = rememberAsyncImagePainter(R.drawable.img)
+    val img = if (uri != null) {
+        rememberAsyncImagePainter(uri)
+    } else {
+        painterResource(id = R.drawable.profile)
+    }
 
     // Use a Row to align the text and image horizontally
     Row(
@@ -74,14 +79,14 @@ fun HeaderSection(
 
         // Profile image
         Image(
-            painter = img ?: painterResource(id = R.drawable.img), // Replace with your image resource
+            painter = img , // Replace with your image resource
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(64.dp) // Adjust size as needed
                 .align(Alignment.CenterVertically)
                 .clip(CircleShape)
                 .clickable {
-
+                    onProfileClicked()
                 }
                 .shadow(20.dp, CircleShape), // Add a shadow to the image
             contentScale = ContentScale.Crop
@@ -92,6 +97,6 @@ fun HeaderSection(
 @Preview(showBackground = true, showSystemUi = true, device = Devices.DEFAULT)
 @Composable
 fun Hehe(modifier: Modifier = Modifier) {
-    HeaderSection()
+    HeaderSection(){}
 
 }

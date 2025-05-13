@@ -51,11 +51,17 @@ android {
     }
 }
 
+
+
+
 dependencies {
+
+    implementation (libs.imagepicker)
 
     implementation(libs.accompanist.pager)
     implementation(libs.coil.compose.v270)
     implementation (libs.okhttp)
+    implementation (libs.androidx.core.splashscreen)
     implementation (libs.androidx.recyclerview)
     implementation(libs.library.base)
     implementation(libs.firebase.messaging)

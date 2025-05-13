@@ -1,15 +1,23 @@
 package com.el_aouthmanie.nticapp.ui.screens.homeScreen
 
 
+import android.app.Activity
+import android.content.Context
 import android.os.Build
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,37 +26,53 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.ManageAccounts
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.el_aouthmanie.nticapp.R
 import com.el_aouthmanie.nticapp.globals.CONSTANTS
 import com.el_aouthmanie.nticapp.modules.OnlineDataBase
@@ -60,76 +84,108 @@ import com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.RectangleButto
 import com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.ScheduleCard
 import com.el_aouthmanie.nticapp.ui.theme.backgroundWhite
 import com.el_aouthmanie.nticapp.ui.theme.primaryBlue
+import com.github.dhaval2404.imagepicker.ImagePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.random.Random
+import androidx.core.content.edit
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(
-    navController: NavController
-) {
+fun HomeScreen(navController: NavController) {
+    val ctx = LocalContext.current
+    val sharedPrefs = ctx.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
+
+    // Load saved URI from SharedPreferences
+    val savedUri = remember {
+        mutableStateOf(sharedPrefs.getString("profile_uri", null))
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.data
+            uri?.let {
+                savedUri.value = it.toString()
+                sharedPrefs.edit() { putString("profile_uri", it.toString()) }
+            }
+        }
+    }
+
+    var nextDayClass by remember { mutableStateOf(Seance()) }
+    var i = remember { mutableIntStateOf(0) }
+
+    var showProfileDialog by remember { mutableStateOf(false) }
+    var showNotificationDialog by remember { mutableStateOf(false) }
+
+    var notificationTitle by remember { mutableStateOf("") }
+    var notificationBody by remember { mutableStateOf("") }
+    var notificationIcon by remember { mutableStateOf("") }
+
     val db = OnlineDataBase
     val scope = rememberCoroutineScope()
 
-    var nextDayClass by remember { mutableStateOf(Seance()) }
-    var i = remember { mutableStateOf(0) }
-
     scheduleUIUpdate(i)
     LaunchedEffect(i) {
-        db.syncClasses("AM201", "S2S26", RealmManager.realm, scope, onFailureResponse = {
+        db.syncClasses(
+            "AM201", "S2S26", RealmManager.realm, scope,
+            onFailureResponse = {
+                val fetchedClass = db.getNextClass(RealmManager.realm, scope)
+                nextDayClass = fetchedClass ?: Seance()
+            }) {
             val fetchedClass = db.getNextClass(RealmManager.realm, scope)
-            nextDayClass = fetchedClass ?: Seance()
-        }) {
-            val fetchedClass = db.getNextClass(RealmManager.realm, scope)
-
             nextDayClass = fetchedClass ?: Seance()
         }
     }
 
-
     val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
         Modifier.background(backgroundWhite),
-        topBar = { HeaderSection() },
-
-
+        topBar = {
+            HeaderSection(
+                "Hello,!",
+                "azzi",
+                "azzi is a legend",
+                savedUri.value // This is now the saved URI string or null
+            ) {
+                showProfileDialog = true
+            }
+        },
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState,
-
-                snackbar = { message ->
-                    Snackbar(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(),
-                        content = {
-                            Text(text = message.visuals.message, textAlign = TextAlign.Center)
-                        }
+            SnackbarHost(hostState = snackbarHostState) { message ->
+                Snackbar(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = message.visuals.message,
+                        textAlign = TextAlign.Center
                     )
                 }
-
-            )
+            }
         },
-
-//        floatingActionButton = {
-//            FloatingActionButton(onClick = { exitProcess(0) }) {
-//                Text(text = "aha")
-//            }
-//        }
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                showNotificationDialog = true
+            }) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "send notification"
+                )
+            }
+        }
     ) { paddingValues ->
         Box {
             Canvas(modifier = Modifier.fillMaxSize()) {
-
-                //some lines , i think it absurde for now
                 repeat(3) {
                     drawLine(
                         color = primaryBlue.copy(alpha = 0.1f),
                         start = center.copy(
-
                             x = Random.nextFloat() * size.width,
                             y = Random.nextFloat() * size.height
                         ),
@@ -148,27 +204,19 @@ fun HomeScreen(
                     .padding(paddingValues)
                     .background(MaterialTheme.colorScheme.background)
             ) {
-
-
-                // Image Slider
                 HorizontalPager(
-                    state = rememberPagerState {
-                        3
-                    },
+                    state = rememberPagerState { 3 },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clip(RoundedCornerShape(16.dp)),
-
-                    ) { i ->
+                ) { i ->
                     ScheduleCard(nextDayClass)
                 }
-                // here
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     RectangleButtonWithIcon(icon = Icons.Outlined.Star) {
@@ -182,72 +230,108 @@ fun HomeScreen(
                     }
                 }
 
-                //region to dynamic
                 NotificationsList(notifications = List(10) {
-                    when (it) {
-                        0 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "The Networking Fundamentals class is rescheduled to 2 PM tomorrow.",
-                            title = "Class Rescheduling"
-                        )
-                        1 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Final exam schedule is now available on the student portal.",
-                            title = "Exam Schedule Published"
-                        )
-                        2 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "JavaFX Workshop this Friday in Lab 2. All students welcome!",
-                            title = "Upcoming Workshop"
-                        )
-                        3 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Return your library books before Friday to avoid penalties.",
-                            title = "Library Reminder"
-                        )
-                        4 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "New elective courses added. Register your choices soon.",
-                            title = "New Courses Available"
-                        )
-                        5 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "The institute will be closed next Monday due to maintenance.",
-                            title = "Closure Announcement"
-                        )
-                        6 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Don't forget to complete your internship report submission.",
-                            title = "Internship Reminder"
-                        )
-                        7 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Career orientation session next week. Sign up at reception.",
-                            title = "Orientation Session"
-                        )
-                        8 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Digital skills training available. Check your email for details.",
-                            title = "Skills Training"
-                        )
-                        9 -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "Semester results will be published by the end of the month.",
-                            title = "Results Announcement"
-                        )
-                        else -> com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
-                            icon = R.drawable.profile,
-                            subtitle = "General notice",
-                            title = "Notification"
-                        )
-                    }
+                    com.el_aouthmanie.nticapp.ui.screens.homeScreen.components.NotificationItem(
+                        icon = R.drawable.profile,
+                        subtitle = "The Networking Fundamentals class is rescheduled to 2 PM tomorrow.",
+                        title = "Class Rescheduling"
+                    )
                 })
-                //endregion
-
             }
         }
     }
+
+    if (showProfileDialog) {
+        AlertDialog(
+            onDismissRequest = { showProfileDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showProfileDialog = false }) {
+                    Text(stringResource(R.string.close))
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    val painter = if (savedUri.value != null) {
+                        rememberAsyncImagePainter(savedUri.value)
+                    } else {
+                        painterResource(id = R.drawable.profile)
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+
+                    ){
+                        Text("azzi aoutmane")
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .clickable(true) {
+                                    ImagePicker.with(ctx as ComponentActivity)
+                                        .cropSquare()
+                                        .compress(1024)
+                                        .maxResultSize(512, 512)
+                                        .createIntent { intent -> launcher.launch(intent) }
+                                }
+                        )
+                    }
+
+
+                    Text("Profile Navigation")
+                }
+            }
+        )
+    }
+
+    if (showNotificationDialog) {
+        AlertDialog(
+            onDismissRequest = { showNotificationDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    println("Send notification: $notificationTitle, $notificationBody, $notificationIcon")
+                    showNotificationDialog = false
+                }) {
+                    Text("Send")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotificationDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Send Notification") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = notificationTitle,
+                        onValueChange = { notificationTitle = it },
+                        label = { Text("Title") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = notificationBody,
+                        onValueChange = { notificationBody = it },
+                        label = { Text("Body") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = notificationIcon,
+                        onValueChange = { notificationIcon = it },
+                        label = { Text("Android Icon Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        )
+    }
 }
+
 
 //
 @RequiresApi(Build.VERSION_CODES.O)

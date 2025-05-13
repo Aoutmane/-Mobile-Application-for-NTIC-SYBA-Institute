@@ -4,7 +4,7 @@ import io.realm.kotlin.types.RealmObject
 import io.realm.kotlin.types.annotations.PrimaryKey
 import org.mongodb.kbson.ObjectId
 
-// Data class to represent an announcement
+
 class Notification : RealmObject{
     @PrimaryKey
     var id : ObjectId = ObjectId()
@@ -18,6 +18,7 @@ class Notification : RealmObject{
     var priority : String = "NORMAL"
 
     var imageLink : String? = null
+    var logoName : String = "Notification"
     var expireDate : String = "PERMANENT"
 
     var isRead : Boolean = false
