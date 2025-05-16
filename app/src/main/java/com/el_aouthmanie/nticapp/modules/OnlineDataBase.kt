@@ -1,12 +1,9 @@
 package com.el_aouthmanie.nticapp.modules
 
-import android.adservices.topics.EncryptedTopic
 import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.el_aouthmanie.nticapp.globals.UserAuthRole
-import com.el_aouthmanie.nticapp.globals.toUserAuthRole
 import com.el_aouthmanie.nticapp.modules.intities.Notification
 import com.el_aouthmanie.nticapp.modules.intities.Seance
 import com.el_aouthmanie.nticapp.modules.intities.User
@@ -31,11 +28,14 @@ import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.Locale
 import androidx.core.content.edit
-import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import com.el_aouthmanie.nticapp.modules.intities.Admin
-import com.el_aouthmanie.nticapp.modules.intities.Guest
 import com.el_aouthmanie.nticapp.modules.intities.Trainee
+import com.el_aouthmanie.nticapp.modules.realmHandler.RealmManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -56,10 +56,45 @@ object OnlineDataBase {
     private val KEY_IS_LOGGED_IN = "isLoged"
 
     private val KEY_NAME = "name"
+    private val KEY_LASTNAME = "lname"
     private val KEY_GROUP = "group"
     private val KEY_ROLE = "role"
+    private val PREF_LOGGIN = "login"
 
+    private val NOTIFICATIONS = "nots"
     private val daysInApi = dayIndex.map { it.key.lowercase() }
+
+    fun notificationsEnabled(ctx : Context) : Boolean {
+        val sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+       return  sharedPreferences.getBoolean(NOTIFICATIONS,true)
+    }
+
+    fun toggleNotifications(ctx : Context, new : Boolean){
+        val sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        sharedPreferences.edit {
+            putBoolean(NOTIFICATIONS,new)
+            apply()
+        }
+
+    }
+
+    fun getLogin(ctx : Context) : String {
+        val sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        return sharedPreferences.getString(PREF_LOGGIN,"unknown").toString()
+    }
+
+    fun setLogin(ctx : Context, login : String){
+        val sharedPreferences = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        sharedPreferences.edit {
+            putString(PREF_LOGGIN,login)
+            apply()
+        }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getNextClass(realm: Realm, scope: CoroutineScope): Seance? {
@@ -179,34 +214,50 @@ object OnlineDataBase {
         }
     }
 
+    suspend fun loadNotifications(realm : Realm) : List<Notification>{
+        return realm.query<Notification>().find().toList()
+    }
 
     fun saveLoginState(
         context: Context,
-        isLoggedIn: Boolean,
-        authRole: UserAuthRole = UserAuthRole.Guest,
-        name: String,
-        group: String
+        user : User
     ) {
         val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
         sharedPreferences.edit() {
-            putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)
-            putString(KEY_ROLE, authRole.toString())
-            putString(KEY_NAME, name)
-            putString(KEY_GROUP, group)
+            clear()
+            putBoolean(KEY_IS_LOGGED_IN, true)
+            putString(KEY_ROLE, user.role())
+            putString(KEY_NAME, user.name)
+            putString(KEY_LASTNAME, user.lastName)
+            putString(KEY_GROUP, user.group)
+
+            apply()
         }
     }
+
+
 
     fun getGroup(context: Context): String{
         val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-        return sharedPreferences.getString(KEY_GROUP, "N/A") ?: "N/A" // Default to false if not set
+        return sharedPreferences.getString(KEY_GROUP, "N/A") ?: "N/A"
+    }
+
+    fun getName(context: Context,last : Boolean = false): String{
+        val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        val name = sharedPreferences.getString(KEY_NAME, "N/A") ?: "N/A"
+        val lastName = sharedPreferences.getString(KEY_LASTNAME, "N/A") ?: "N/A"
+        return name.replaceFirstChar { it.uppercase() } + if (last) " ${lastName.uppercase()}" else ""
+
     }
 
     // Check login state from SharedPreferences
     fun isUserLoggedIn(context: Context): Boolean {
         val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-        return sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false) // Default to false if not set
+        return sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
 
@@ -226,9 +277,7 @@ object OnlineDataBase {
 
 
 
-    fun loginUser(username: String, password: String): User? {
-        val client = OkHttpClient()
-
+    suspend fun loginUser(username: String, password: String): User? = withContext(Dispatchers.IO) {
         val url = HttpUrl.Builder()
             .scheme("http")
             .host(LOGIN_API_URL)
@@ -240,9 +289,9 @@ object OnlineDataBase {
         val request = Request.Builder().url(url).build()
 
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return null
+            if (!response.isSuccessful) return@withContext null
 
-            val body = response.body?.string() ?: return null
+            val body = response.body?.string() ?: return@withContext null
 
             val json = JSONObject(body)
             val name = json.optString("name", "")
@@ -250,9 +299,110 @@ object OnlineDataBase {
             val group = json.optString("group", "")
             val isAdmin = json.optBoolean("admin", false)
 
-            if (name.isBlank() || lastName.isBlank() || group.isBlank()) return null
+            if (name.isBlank() || lastName.isBlank() || group.isBlank()) return@withContext null
 
-            return if (isAdmin) Admin(name, lastName) else Trainee(name, lastName, group)
+            return@withContext if (isAdmin) Admin(name, lastName) else Trainee(name, lastName, group)
+        }
+    }
+
+    fun sendNotificationToServer(
+        group: String,
+        title: String,
+        body: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val url = "https://azzi-aoutmane.alwaysdata.net/notification_service.php"
+        val key = "svS2N0Ic2HVUv610d3fkihhX7sVxZ3"
+
+        val json = JSONObject().apply {
+            put("group", group)
+            put("title", title)
+            put("body", body)
+            put("key", key)
+        }
+
+        val requestBody = json.toString().toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                onError("Request failed: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!it.isSuccessful) {
+                        onError("Unexpected code ${it.code}")
+                    } else {
+                        onSuccess()
+                    }
+                }
+            }
+        })
+    }
+
+
+    suspend fun logout(ctx : Context){
+        val prfs = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prfs.edit {
+            clear()
+            apply()
+        }
+        val rlm = RealmManager.realm
+
+        rlm.write {
+            delete(Notification::class)
+            delete(Seance::class)
+
+        }
+
+
+
+
+    }
+    suspend fun updatePassword(
+        username: String,
+        oldPassword: String,
+        newPassword: String
+    ): String = withContext(Dispatchers.IO) {
+        val client = OkHttpClient()
+
+        val formBody = FormBody.Builder()
+            .add("username", username)
+            .add("old_password", oldPassword)
+            .add("new_password", newPassword)
+            .build()
+
+        val request = Request.Builder()
+            .url("https://azzi-aoutmane.alwaysdata.net/update_service.php")
+            .post(formBody)
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                val responseBody = response.body?.string() ?: return@withContext "Empty response from server."
+
+                if (!response.isSuccessful) {
+                    return@withContext "HTTP ${response.code}: $responseBody"
+                }
+
+                val json = JSONObject(responseBody)
+
+                return@withContext when {
+                    json.has("message") -> json.getString("message")
+                    json.has("error") -> "Error: ${json.getString("error")}"
+                    else -> "Unexpected response: $responseBody"
+                }
+            }
+        } catch (e: Exception) {
+            return@withContext "Exception: ${e.message}"
         }
     }
 }

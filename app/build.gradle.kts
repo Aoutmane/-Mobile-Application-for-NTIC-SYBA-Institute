@@ -60,6 +60,9 @@ dependencies {
 
     implementation(libs.accompanist.pager)
     implementation(libs.coil.compose.v270)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
     implementation (libs.okhttp)
     implementation (libs.androidx.core.splashscreen)
     implementation (libs.androidx.recyclerview)

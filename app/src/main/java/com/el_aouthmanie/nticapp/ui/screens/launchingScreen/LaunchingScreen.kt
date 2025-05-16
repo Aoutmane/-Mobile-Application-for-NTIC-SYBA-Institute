@@ -15,6 +15,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,7 +55,7 @@ import com.el_aouthmanie.nticapp.ui.theme.primaryBlue
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun LaunchingScreen(
-    screensTexts : List<Pair<String,String>> = emptyList(),
+    screensTexts : List<Triple<String,String, Int>> = emptyList(),
     onSkip : () -> Unit = {},
     onComplete : () -> Unit = {}
 ) {
@@ -61,6 +63,7 @@ fun LaunchingScreen(
     val totalPages = screensTexts.size
     val titles = screensTexts.map { it.first }
     val descriptions = screensTexts.map { it.second }
+    val images = screensTexts.map { it.third }
 
     // Animation states
     val buttonScale by animateFloatAsState(
@@ -119,6 +122,12 @@ fun LaunchingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
+                    Image(
+                        painter = painterResource(images[page]),
+                        contentDescription = ""
+                    )
+
                     Text(
                         text = titles[page],
                         fontSize = 24.sp,

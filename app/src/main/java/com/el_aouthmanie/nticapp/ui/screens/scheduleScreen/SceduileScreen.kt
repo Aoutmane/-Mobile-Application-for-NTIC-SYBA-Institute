@@ -23,12 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.el_aouthmanie.nticapp.modules.OnlineDataBase
 import com.el_aouthmanie.nticapp.modules.intities.ClassBundle
 import com.el_aouthmanie.nticapp.modules.intities.Seance
 import com.el_aouthmanie.nticapp.modules.realmHandler.RealmManager
 import com.el_aouthmanie.nticapp.ui.compenents.TitleAppBar
+import com.el_aouthmanie.nticapp.ui.screens.homeScreen.mod
 import com.el_aouthmanie.nticapp.ui.screens.scheduleScreen.components.ClassList
 import com.el_aouthmanie.nticapp.ui.screens.scheduleScreen.components.HeaderSection
 import io.realm.kotlin.ext.query
@@ -49,17 +51,20 @@ fun ScheduleScreen() {
     val pagerState = rememberPagerState { 6 }
     var updateTrigger by rememberSaveable { mutableStateOf(true) }
     var isItUpToDate by rememberSaveable { mutableStateOf(false) }
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+    var newGroup by rememberSaveable { mutableStateOf("") }
 
     val classBundles = mutableSetOf<ClassBundle>()
     var finishedLoading by rememberSaveable { mutableStateOf(false) }
-
+    val ctx = LocalContext.current
+    var grp by rememberSaveable { mutableStateOf(OnlineDataBase.getGroup(ctx)) }
     val realm = RealmManager.realm
 
-    LaunchedEffect(updateTrigger) {
+    LaunchedEffect(updateTrigger,grp) {
         scope.launch {
             onlineDataBase.syncClasses(
-                "AM201",
-                "S2S28",
+                grp,
+                mod,
                 realm,
                 scope,
                 onFailureResponse = {
@@ -117,9 +122,14 @@ fun ScheduleScreen() {
 
     Scaffold(
         topBar = {
-            TitleAppBar(title = "Schedule", modifier = Modifier.clickable {
-                updateTrigger = !updateTrigger
-            })
+            TitleAppBar(title = "Schedule",)
+        },
+        floatingActionButton = {
+            if (OnlineDataBase.getGroup(ctx) == "Administration"){
+                androidx.compose.material3.FloatingActionButton(onClick = { showDialog = true }) {
+                    Text("browse")
+                }
+            }
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
@@ -150,5 +160,38 @@ fun ScheduleScreen() {
                 )
             }
         }
+        if (showDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Change Group") },
+                text = {
+                    Column {
+                        Text("Enter your group code:")
+                        androidx.compose.material3.OutlinedTextField(
+                            value = newGroup,
+                            onValueChange = { newGroup = it.uppercase() },
+                            placeholder = { Text("e.g., AM201") }
+                        )
+                    }
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        grp = newGroup
+                        updateTrigger = !updateTrigger
+                        showDialog = false
+                    }) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        showDialog = false
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
     }
 }

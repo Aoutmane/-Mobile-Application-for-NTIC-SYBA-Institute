@@ -55,9 +55,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.el_aouthmanie.nticapp.globals.CONSTANTS
 import com.el_aouthmanie.nticapp.modules.intities.Notification
+import com.el_aouthmanie.nticapp.modules.intities.Seance
+import com.el_aouthmanie.nticapp.modules.realmHandler.RealmManager
+import io.realm.kotlin.Realm
+import io.realm.kotlin.ext.query
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,60 +79,11 @@ fun AnnouncementsScreen(navController: NavController) {
         targetValue = if (searchText.isNotEmpty()) 48.dp else 56.dp,
         animationSpec = tween(durationMillis = 300)
     )
-
-    // Sample notifications data
+    val realm = RealmManager.realm
     val notifications = remember {
-        listOf(
-            Notification().apply {
-                title = "Class Rescheduling Notice"
-                sender = "Admin"
-                body = "The Networking Fundamentals class has been rescheduled to 2 PM tomorrow. Please update your timetable accordingly."
-                createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
-                type = "INFO"
-                priority = "NORMAL"
-                isRead = false
-            },
-            Notification().apply {
-                title = "Exam Schedule Published"
-                sender = "Admin"
-                body = "The final exam schedule for the current semester is now available on the student portal. Make sure to check your subjects."
-                createdAt = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_DATE)
-                type = "ANNOUNCEMENT"
-                priority = "HIGH"
-                isRead = false
-            },
-            Notification().apply {
-                title = "Workshop on JavaFX"
-                sender = "Admin"
-                body = "A practical workshop on JavaFX will be held this Friday in Lab 2. All Software Development students are encouraged to attend."
-                createdAt = LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE)
-                type = "EVENT"
-                priority = "NORMAL"
-                isRead = false
-            },
-            Notification().apply {
-                title = "Library Book Return Reminder"
-                sender = "Admin"
-                body = "You have books due for return in the OFPPT library. Kindly return them before the end of this week to avoid penalties."
-                createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
-                type = "REMINDER"
-                priority = "LOW"
-                isRead = false
-            },
-            Notification().apply {
-                title = "New Courses Available"
-                sender = "Admin"
-                body = "New elective courses for the next semester have been added. Visit the admin office or the portal to register your choices."
-                createdAt = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
-                type = "INFO"
-                priority = "NORMAL"
-                isRead = true
-            }
-
-        )
+        realm.query<Notification>().find().toList()
     }
 
-    // Filter states
     var selectedType by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf("") }
     var showUnreadOnly by remember { mutableStateOf(false) }
@@ -134,7 +93,10 @@ fun AnnouncementsScreen(navController: NavController) {
             CenterAlignedTopAppBar(
                 title = { Text(text = "Notifications", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { navController.navigate(CONSTANTS.Screens.HOME){
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    } }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -179,7 +141,7 @@ fun AnnouncementsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
-                    notifications.filter { notification ->
+                    notifications.reversed().filter { notification ->
                         (notification.title.contains(searchText, ignoreCase = true)) &&
                                 (selectedType.isEmpty() || notification.type == selectedType) &&
                                 (selectedPriority.isEmpty() || notification.priority == selectedPriority) &&
@@ -201,21 +163,20 @@ fun AnnouncementsScreen(navController: NavController) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Type")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val info = "INFO"
+                        val warning = "WARNING"
+
                         FilterChip(
-                            selected = selectedType == "INFO",
-                            onClick = { selectedType = if (selectedType == "INFO") "" else "INFO" },
+                            selected = selectedType == info,
+                            onClick = { selectedType = if (selectedType == info) "" else info },
                             label = { Text("Info") }
                         )
                         FilterChip(
                             selected = selectedType == "Scheduile Update",
-                            onClick = { selectedType = if (selectedType == "WARNING") "" else "WARNING" },
+                            onClick = { selectedType = if (selectedType == warning) "" else warning },
                             label = { Text("Warning") }
                         )
-                        FilterChip(
-                            selected = selectedType == "to do",
-                            onClick = { selectedType = if (selectedType == "ERROR") "" else "ERROR" },
-                            label = { Text("Error") }
-                        )
+
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -264,6 +225,7 @@ fun AnnouncementsScreen(navController: NavController) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NotificationItem(notification: Notification) {
     Card(
@@ -311,8 +273,17 @@ fun NotificationItem(notification: Notification) {
             Spacer(modifier = Modifier.width(16.dp))
 
             // Date
+            val formattedDate = try {
+                val parsedDate = ZonedDateTime.parse(notification.createdAt) // or use LocalDateTime if no zone
+
+                val formatter = DateTimeFormatter.ofPattern("EEE d MMM yyyy, HH:mm", Locale.FRENCH)
+                parsedDate.format(formatter).replaceFirstChar { it.uppercase() } // Capitalize first char
+            } catch (e: DateTimeParseException) {
+                "Date invalide"
+            }
+
             Text(
-                text = notification.createdAt,
+                text = formattedDate,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.Top)

@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -34,9 +35,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         splashScreen.setKeepOnScreenCondition {
-            // Return true if the splash screen should stay, false otherwise
             false
         }
+        // simple animation by jaafer
         splashScreen.setOnExitAnimationListener { splashViewProvider ->
             splashViewProvider.iconView.animate()
                 .setDuration(300L)
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
         }
 
         initializeFirebaseMessaging()
+
         requestNotificationPermission()
         RealmManager.initialize()
         createNotificationChannel()
@@ -68,6 +70,9 @@ class MainActivity : ComponentActivity() {
      * Initializes Firebase Cloud Messaging and logs the token.
      */
     private fun initializeFirebaseMessaging() {
+
+
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 task.result?.let { token ->

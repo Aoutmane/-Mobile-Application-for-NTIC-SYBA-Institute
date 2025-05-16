@@ -3,6 +3,7 @@ package com.el_aouthmanie.nticapp.ui.screens.loginScreen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,14 +12,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -67,6 +72,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(Color.White),
         contentAlignment = Alignment.TopCenter
     ) {
@@ -76,10 +82,11 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(250.dp)
+
                 .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
         ) {
             Image(
-                painter = backgroundImagePainter ?: painterResource(id = R.drawable.profile),
+                painter = backgroundImagePainter ?: painterResource(id = R.drawable.background_ofppt),
                 contentDescription = "Background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -90,12 +97,13 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
+
                 .padding(top = 200.dp, bottom = normalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Logo (Overlapping the Image)
             Image(
-                painter = logoImagePainter ?: painterResource(id = R.drawable.profile),
+                painter = logoImagePainter ?: painterResource(id = R.drawable.logo_ofppt),
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(90.dp)
@@ -111,7 +119,8 @@ fun LoginScreen(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -121,9 +130,9 @@ fun LoginScreen(
                 value = emaill,
                 onValueChange = {emaill = it},
 
-                label = { Text("Email") },
+                label = { Text("Username") },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon")
+                    Icon(imageVector = Icons.Outlined.Person, contentDescription = "Email Icon")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,7 +157,7 @@ fun LoginScreen(
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Edit else Icons.Default.Info,
+                            imageVector = if (passwordVisible) Icons.Default.Lock else Icons.Default.RemoveRedEye,
                             contentDescription = "Toggle Password Visibility"
                         )
                     }
@@ -173,7 +182,7 @@ fun LoginScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(2f))
 
             // Login Button
             NextButton(
@@ -185,7 +194,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Enter as Guest Button
-            NextButton(text = "enter as Guest"){
+            NextButton(text = "Enter As Guest"){
                 onGuestRequest()
             }
 

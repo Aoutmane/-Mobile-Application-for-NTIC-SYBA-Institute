@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ISTA NTIC APP</string>
-    <string name="no_class">No class for </string>
+    <string name="no_class">No class for the day.</string>
     <integer name="blinking_time">1000</integer>
     <integer name="morphing_time">2000</integer>
     <string name="android_head">M85,40
@@ -90,4 +90,5 @@
         c-6.668747,9.746841 -13.590027,19.457977 -24.493088,19.659103
         c-10.713348,0.197403 -14.158287,-6.353043 -26.406677,-6.353043</string>
     <string name="close">Close</string>
+    <string name="hello">"Welcome "</string>
 </resources>

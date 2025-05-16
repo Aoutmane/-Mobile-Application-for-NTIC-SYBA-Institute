@@ -44,19 +44,16 @@ fun HeaderSection(
     val img = if (uri != null) {
         rememberAsyncImagePainter(uri)
     } else {
-        painterResource(id = R.drawable.profile)
+        painterResource(id = R.drawable.img)
     }
 
-    // Use a Row to align the text and image horizontally
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(normalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Column for the text content
         Column(modifier = Modifier.weight(1f)) {
-            // Greeting text ("HELLO, Aoutmane")
             Text(
                 text = "$welcomingMessage, $name",
                 fontSize = 24.sp,
@@ -74,15 +71,13 @@ fun HeaderSection(
             )
         }
 
-        // Spacer to add some horizontal space between text and image
         Spacer(modifier = Modifier.width(normalPadding))
 
-        // Profile image
         Image(
-            painter = img , // Replace with your image resource
+            painter = img ,
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .size(64.dp) // Adjust size as needed
+                .size(64.dp)
                 .align(Alignment.CenterVertically)
                 .clip(CircleShape)
                 .clickable {

@@ -78,13 +78,12 @@ fun ActiveClubsBar(clubs : List<Club>,modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
 
-
     ) {
         items(clubs.size){
             val club = clubs[it]
             AsyncImage(
                 model = club.iconLink,
-                contentDescription = "${club.name}club icon",
+                contentDescription = "${club.name} club icon",
                 onError = {
                     imageOk =  false
                 },

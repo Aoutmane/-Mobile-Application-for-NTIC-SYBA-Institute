@@ -1,6 +1,7 @@
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,8 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,98 +44,77 @@ import kotlin.random.Random
 
 @Composable
 fun NotificationCard(
-    icon: Painter,
+    icon: ImageVector = Icons.Outlined.Announcement,
     title: String,
     subtitle: String,
-    backgroundColor: Color = Color.White
+    backgroundColor: Color = Color.White,
+    modifier: Modifier = Modifier,
+    showBackgroundArt: Boolean = false
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(90.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .border(
-                1.dp,
-                secondaryBorder,
-                RoundedCornerShape(10.dp)
-            )
-            .clip(RoundedCornerShape(10.dp))
-
-
-            ,
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.outlinedCardColors().copy(
-            containerColor = secondaryBackgroundWhite,
-
-
-        )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                repeat(5) {
-                    drawCircle(
-                        color = primaryBlue.copy(alpha = Random.nextFloat() * 0.2f),
-                        radius = Random.nextFloat() * 100f + 30f,
-                        center = center.copy(
-                            x = Random.nextFloat() * size.width,
-                            y = Random.nextFloat() * size.height
+        Box(
+            modifier = Modifier
+                .height(90.dp)
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (showBackgroundArt) {
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    repeat(4) {
+                        drawCircle(
+                            color = primaryBlue.copy(alpha = Random.nextFloat() * 0.1f),
+                            radius = Random.nextFloat() * 60f + 30f,
+                            center = Offset(
+                                x = Random.nextFloat() * size.width,
+                                y = Random.nextFloat() * size.height
+                            )
                         )
-                    )
-
+                    }
                 }
-                //some lines , i think it absurde for now
-//                repeat(3) {
-//                    drawLine(
-//                        color = primaryBlue.copy(alpha = 0.1f),
-//                        start = center.copy(
-//
-//                            x = Random.nextFloat() * size.width,
-//                            y = Random.nextFloat() * size.height
-//                        ),
-//                        end = center.copy(
-//                            x = Random.nextFloat() * size.width,
-//                            y = Random.nextFloat() * size.height
-//                        ),
-//                        strokeWidth = Random.nextFloat() * 6f + 2f
-//                    )
-//                }
             }
 
             Row(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-//                        .background(Color.LightGray.copy(alpha = 0.2f))
-
-                        .padding(4.dp),
+                        .size(48.dp)
+                        .background(primaryBlue.copy(alpha = 0.1f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Announcement,
+                        imageVector = icon,
                         contentDescription = null,
-                        tint = Color.Black,
-                        modifier = Modifier.fillMaxSize()
+                        tint = primaryBlue,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Spacer to separate the icon from the text
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Title and subtitle
-                Column {
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
                         text = title,
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = subtitle,
                         fontSize = 14.sp,
@@ -143,44 +125,5 @@ fun NotificationCard(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun NotificationsListr() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp)
-    ) {
-        // Header
-        Text(
-            text = "Today",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-
-        // List of notifications
-        NotificationCard(
-            icon = painterResource(id = R.drawable.profile), // Replace with your icon resource
-            title = "new assignment",
-            subtitle = "please go and do the test onddddddddddddddddd OFPPT..."
-        )
-
-        NotificationCard(
-            icon = painterResource(id = R.drawable.profile), // Replace with your icon resource
-            title = "stage offer",
-            subtitle = "example company offers a stage on ...",
-            backgroundColor = Color(0xFF1E90FF) // Blue background for this card
-        )
-
-        NotificationCard(
-            icon = painterResource(id = R.drawable.profile), // Replace with your icon resource
-            title = "schedule update",
-            subtitle = "please re-check your schedule"
-        )
     }
 }

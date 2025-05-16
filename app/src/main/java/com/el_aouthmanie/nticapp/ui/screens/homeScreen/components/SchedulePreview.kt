@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,20 +22,24 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.el_aouthmanie.nticapp.modules.OnlineDataBase
 import com.el_aouthmanie.nticapp.modules.intities.Seance
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import com.el_aouthmanie.nticapp.R
 
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleCard(seance: Seance) {
     val circles = remember {
@@ -66,87 +71,96 @@ fun ScheduleCard(seance: Seance) {
             .height(200.dp)
             .padding(16.dp),
         colors = CardDefaults.outlinedCardColors().copy(containerColor = Color(0xFF1E88E5)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            // Draw background decorations
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val w = size.width
-                val h = size.height
-                circles.forEach {
-                    drawCircle(
-                        color = Color.White.copy(alpha = it.alpha),
-                        radius = it.radius,
-                        center = androidx.compose.ui.geometry.Offset(w * it.xFactor, h * it.yFactor)
-                    )
-                }
-                lines.forEach {
-                    drawLine(
-                        color = Color.White.copy(alpha = 0.2f),
-                        start = androidx.compose.ui.geometry.Offset(size.width * it.startXF, size.height * it.startYF),
-                        end = androidx.compose.ui.geometry.Offset(size.width * it.endXF, size.height * it.endYF),
-                        strokeWidth = it.strokeWidth
-                    )
-                }
-            }
+        if (OnlineDataBase.getGroup(LocalContext.current) == "Administration"){
+            Image(
+                painter = painterResource(R.drawable.working_bro),
+                contentDescription = "",
+                modifier = Modifier.fillMaxSize().align (Alignment.CenterHorizontally)
 
-            // Time range
-            Text(
-                text = "${seance.startingTime} - ${seance.endingTime}",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.TopCenter)
             )
+        } else {
 
-            // Animated "OnGoing" text
-            WaveText(
-                modifier = Modifier.align(Alignment.TopEnd),
-                text = "OnGoing"
-            )
-
-            // Title and subtitle
-            Column(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(top = 32.dp)
-            ) {
-                val scrollState = rememberScrollState()
-                Text(
-                    text = seance.teacher,
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = seance.moduleDetails + "\n" + seance.nomMode,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    modifier = Modifier.verticalScroll(scrollState)
-                )
-            }
-
-            // Room badge
             Box(
                 modifier = Modifier
-                    .size(55.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .align(Alignment.CenterEnd)
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
+
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    circles.forEach {
+                        drawCircle(
+                            color = Color.White.copy(alpha = it.alpha),
+                            radius = it.radius,
+                            center = androidx.compose.ui.geometry.Offset(w * it.xFactor, h * it.yFactor)
+                        )
+                    }
+                    lines.forEach {
+                        drawLine(
+                            color = Color.White.copy(alpha = 0.2f),
+                            start = androidx.compose.ui.geometry.Offset(size.width * it.startXF, size.height * it.startYF),
+                            end = androidx.compose.ui.geometry.Offset(size.width * it.endXF, size.height * it.endYF),
+                            strokeWidth = it.strokeWidth
+                        )
+                    }
+                }
+
+
                 Text(
-                    text = seance.classRoom,
-                    color = Color.Blue,
+                    text = "${seance.startingTime} - ${seance.endingTime}",
+                    color = Color.White,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.TopCenter)
                 )
+
+                WaveText(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    text = seance.getStatus()
+                )
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(top = 32.dp)
+                ) {
+                    val scrollState = rememberScrollState()
+                    Text(
+                        text = seance.teacher,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = seance.moduleDetails + "\n" + seance.nomMode,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        modifier = Modifier.verticalScroll(scrollState)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(55.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .align(Alignment.CenterEnd)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = seance.classRoom.replace("null","DIS"),
+                        color = Color.Blue,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                }
             }
         }
     }

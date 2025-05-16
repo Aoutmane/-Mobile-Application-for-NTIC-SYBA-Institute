@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.el_aouthmanie.nticapp.ui.theme.primaryBlue
 
 @Composable
 fun TitleAppBar(modifier: Modifier = Modifier, title: String) {
@@ -24,7 +25,7 @@ fun TitleAppBar(modifier: Modifier = Modifier, title: String) {
             .height(80.dp)
 
             .clip(RoundedCornerShape(bottomEnd = 10.dp, bottomStart = 10.dp))
-            .background(Color.Blue),
+            .background(primaryBlue),
         contentAlignment = Alignment.Center
     ) {
         Text(

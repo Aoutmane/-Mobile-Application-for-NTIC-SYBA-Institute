@@ -17,7 +17,6 @@ class Notification : RealmObject{
     var type : String = "N/A"
     var priority : String = "NORMAL"
 
-    var imageLink : String? = null
     var logoName : String = "Notification"
     var expireDate : String = "PERMANENT"
 

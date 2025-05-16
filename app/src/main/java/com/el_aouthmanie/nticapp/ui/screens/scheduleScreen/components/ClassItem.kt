@@ -94,7 +94,7 @@ fun ClassItem(course: ClassBundle) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        course.room,
+                        course.room.replace("null","DIS"),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )

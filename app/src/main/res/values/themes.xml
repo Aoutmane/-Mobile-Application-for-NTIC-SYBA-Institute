@@ -3,17 +3,14 @@
     <style name="Theme.NTICAPP" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.Splash" parent="Theme.SplashScreen">
-        <!-- Background color -->
+
         <item name="windowSplashScreenBackground">#FFFFFF</item>
 
-        <!-- Animated icon -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/anime_test</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
 
-        <!-- Optional icon background color -->
         <item name="windowSplashScreenIconBackgroundColor">#CA2929</item>
 
-        <!-- Critical: What theme to switch to after splash -->
-        <item name="postSplashScreenTheme">@style/Theme.AppCompat</item>
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.Light</item>
     </style>
 
 </resources>
